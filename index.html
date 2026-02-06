@@ -724,7 +724,115 @@
     html[data-theme="light"] .tab.active{ background: rgba(var(--accent-rgb),.12); }
     html[data-theme="light"] .logo{ background: rgba(255,255,255,.98); }
     
-  </style>
+  
+
+    /* =========================
+       MOBILE UX (<= 780px)
+       - categorias em "carrossel" no topo
+       - barra fixa do pedido
+       - modal com rodapé fixo (Adicionar)
+       ========================= */
+    .mobileCartBar{ display:none; }
+    @media (max-width: 780px){
+      /* Evita que a coluna de categorias empurre os produtos para "muito abaixo" */
+      .layout{ padding-bottom: 86px; }
+
+      /* Categorias: vira carrossel horizontal */
+      .left{
+        position: sticky;
+        top: 70px; /* abaixo da topbar */
+        z-index: 25;
+      }
+      .left .panelHeader{ gap:8px; }
+      .catList{
+        display:flex;
+        overflow-x:auto;
+        gap:10px;
+        padding:12px;
+        scroll-snap-type:x mandatory;
+        -webkit-overflow-scrolling: touch;
+      }
+      .cat{
+        flex: 0 0 auto;
+        min-width: 260px;
+        scroll-snap-align: start;
+      }
+      .cat .meta{ display:none; }
+      .cat .badge{ display:none; }
+      .cat .name{ font-size:14px; }
+
+      /* Barra fixa do pedido */
+      .mobileCartBar{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        position:fixed;
+        left:10px; right:10px; bottom:10px;
+        z-index: 60;
+        padding:12px 14px;
+        border-radius: 16px;
+        border:1px solid var(--line);
+        background: var(--topbar-bg);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--shadow);
+        cursor:pointer;
+        user-select:none;
+      }
+      .mcLeft{ min-width:0; }
+      .mcTitle{ font-weight:800; letter-spacing:.2px; }
+      .mcMeta{ color:var(--muted); font-size:12px; margin-top:2px; }
+      .mcCta{
+        background: rgba(var(--accent-rgb), .18);
+        border:1px solid rgba(var(--accent-rgb), .45);
+        color: var(--text);
+        padding:10px 12px;
+        border-radius: 12px;
+        font-weight:800;
+      }
+
+      /* Direita (pedido): dá um respiro */
+      .right{ scroll-margin-top: 84px; }
+      #middlePanel{ scroll-margin-top: 84px; }
+    }
+
+    @media (max-width: 600px){
+      /* Modal vira full screen + rodapé fixo para não precisar "rolar até o fim" */
+      .modalOverlay{ padding:0; }
+      .modal{
+        width: 100vw;
+        max-height: 100vh;
+        height: 100vh;
+        border-radius: 0;
+        display:flex;
+        flex-direction: column;
+      }
+      .modalLeft{
+        flex: 1 1 auto;
+        max-height: none;
+        overflow: auto;
+        padding: 12px;
+      }
+      .modalRight{
+        flex: 0 0 auto;
+        border-left: 0;
+        border-top: 1px solid var(--line);
+        padding: 12px;
+        background: var(--topbar-bg);
+        backdrop-filter: blur(10px);
+      }
+      .modalRight .optGroup{ margin-bottom:10px; }
+      #m_add, #m_add_fast{
+        height: 46px;
+        font-weight: 900;
+      }
+      /* Deixa o resumo compacto no mobile */
+      .modalRight .row{ font-size: 12px; }
+      .qtyRow{ justify-content: space-between; }
+      .qtyBtn{ width:44px; height:44px; }
+      .qty{ min-width: 72px; }
+    }
+</style>
 </head>
 
 <body>
@@ -766,7 +874,7 @@
     </section>
 
     <!-- MIDDLE -->
-    <section class="panel middle" aria-label="Itens (produtos)">
+    <section class="panel middle" id="middlePanel" aria-label="Itens (produtos)">
       <div class="panelHeader">
         <div>
           <div class="title" id="midTitle">Itens</div>
@@ -783,7 +891,7 @@
     </section>
 
     <!-- RIGHT -->
-    <section class="panel right" aria-label="Pedido / Checkout / KDS / Impressão">
+    <section class="panel right" id="rightPanel" aria-label="Pedido / Checkout / KDS / Impressão">
       <div class="panelHeader">
         <div>
           <div class="title">Pedido (simulador)</div>
@@ -863,6 +971,16 @@
   </main>
 
   <!-- MODAL -->
+  
+  <!-- Mobile: barra fixa do pedido -->
+  <div class="mobileCartBar" id="mobileCartBar" role="button" tabindex="0" aria-label="Ver pedido">
+    <div class="mcLeft">
+      <div class="mcTitle">Pedido</div>
+      <div class="mcMeta"><span id="mcCount">0</span> itens • <span id="mcTotal">R$ 0,00</span></div>
+    </div>
+    <div class="mcCta">Ver</div>
+  </div>
+
   <div class="modalOverlay" id="overlay" role="dialog" aria-modal="true" aria-label="Configurar item">
     <div class="modal">
       <div class="modalLeft">
@@ -1894,6 +2012,10 @@
     const elMidBody = document.getElementById("midBody");
     const elItemCount = document.getElementById("itemCount");
 
+    const elMobileCartBar = document.getElementById("mobileCartBar");
+    const elMcCount = document.getElementById("mcCount");
+    const elMcTotal = document.getElementById("mcTotal");
+
     function renderCategories(){
       elCatCount.textContent = catalog.categories.length + " cat";
       elCatList.innerHTML = "";
@@ -1901,7 +2023,17 @@
         const totalItems = c.subgroups.reduce((sum, sg) => sum + sg.items.length, 0);
         const div = document.createElement("div");
         div.className = "cat" + (state.activeCatId === c.id ? " active" : "");
-        div.onclick = () => { state.activeCatId = c.id; render(); };
+        div.onclick = () => { 
+          state.activeCatId = c.id; 
+          render(); 
+          if(window.innerWidth <= 780){
+            // No mobile, leva o usuário direto para a lista de itens
+            requestAnimationFrame(() => {
+              const mid = document.getElementById("middlePanel");
+              if(mid) mid.scrollIntoView({behavior:"smooth", block:"start"});
+            });
+          }
+        };
         div.innerHTML = `
           <div style="min-width:0;">
             <div class="name">${c.name}</div>
@@ -2063,7 +2195,20 @@
 
     function renderCart(){
       elCartList.innerHTML = "";
-      elCartBadge.textContent = state.cart.reduce((n, l) => n + l.qty, 0);
+      const count = state.cart.reduce((n, l) => n + l.qty, 0);
+      elCartBadge.textContent = count;
+
+      // Mobile: barra fixa do pedido (para não precisar rolar até o final)
+      const totalsNow = cartTotals();
+      if(elMcCount) elMcCount.textContent = count;
+      if(elMcTotal) elMcTotal.textContent = BRL(totalsNow.total);
+      if(elMobileCartBar){
+        if(window.innerWidth <= 780){
+          elMobileCartBar.style.display = count > 0 ? "flex" : "none";
+        }else{
+          elMobileCartBar.style.display = "none";
+        }
+      }
 
       for(const line of state.cart){
         const found = findItemById(line.itemId);
@@ -2139,6 +2284,19 @@
     document.getElementById("btnKDS").onclick = () => setTab("kds");
     document.getElementById("btnBackCart1").onclick = () => setTab("cart");
     document.getElementById("btnBackCart2").onclick = () => setTab("cart");
+
+    // Mobile: "Ver pedido" (barra fixa)
+    if(elMobileCartBar){
+      const goCart = () => {
+        const right = document.getElementById("rightPanel");
+        if(right) right.scrollIntoView({behavior:"smooth", block:"start"});
+      };
+      elMobileCartBar.addEventListener("click", goCart);
+      elMobileCartBar.addEventListener("keydown", (e) => {
+        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); goCart(); }
+      });
+    }
+
 // KDS por estação (2 tablets + 1 TV)
 const kdsTabBtns = Array.from(document.querySelectorAll(".kdsTabBtn"));
 const kdsViewB = document.getElementById("kds_view_b");
