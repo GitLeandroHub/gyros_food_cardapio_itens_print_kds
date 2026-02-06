@@ -723,116 +723,96 @@
     html[data-theme="light"] .btn:hover{ background: rgba(var(--accent2-rgb),.10); }
     html[data-theme="light"] .tab.active{ background: rgba(var(--accent-rgb),.12); }
     html[data-theme="light"] .logo{ background: rgba(255,255,255,.98); }
+
+/* ---------- Mobile UX upgrades (categorias em drawer + modal full) ---------- */
+#btnCats{ display:none; }
+#btnCatsClose{ display:none; }
+.leftHeaderActions{ display:flex; align-items:center; gap:10px; }
+.iconBtn{
+  width:34px; height:34px;
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background: rgba(var(--accent-rgb), .10);
+  color: var(--text);
+  cursor:pointer;
+}
+.iconBtn:active{ transform: translateY(1px); }
+.scrim{
+  position:fixed; inset:0;
+  background: rgba(0,0,0,.42);
+  opacity:0;
+  pointer-events:none;
+  transition: opacity .18s ease;
+  z-index: 79;
+}
+
+@media (max-width: 780px){
+  /* Topbar mais compacta */
+  .pill{ display:none; }
+  .sub{ display:none; }
+  .topbar{ padding:10px 12px; }
+  .controls{ justify-content:flex-start; }
+  #btnCats{ display:inline-flex; }
+  #btnCatsClose{ display:inline-flex; }
+
+  /* Drawer de categorias */
+  body.catsOpen{ overflow:hidden; }
+  body.catsOpen .scrim{ opacity:1; pointer-events:auto; }
+
+  .layout{ padding:10px; gap:10px; }
+  .panel.left{
+    position:fixed;
+    top:0; left:0;
+    height:100dvh;
+    width:min(92vw, 360px);
+    z-index: 80;
+    transform: translateX(-105%);
+    transition: transform .22s ease;
+    border-radius: 0 18px 18px 0;
+    overflow:auto;
+  }
+  .panel.left .panelHeader{
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--panelHeader-bg);
+    backdrop-filter: blur(10px);
+  }
+  body.catsOpen .panel.left{ transform: translateX(0); }
+}
+
+/* Modal realmente utilizável no mobile (sem perder o resumo/CTA) */
+@media (max-width: 920px){
+  .modalOverlay{ padding:0; align-items:stretch; justify-content:stretch; }
+  .modal{
+    width:100vw;
+    height:100dvh;
+    max-height:100dvh;
+    border-radius:0;
+    display:flex;
+    flex-direction:column;
+  }
+  .modalLeft{
+    flex: 1 1 auto;
+    max-height:none;
+    overflow:auto;
+    padding:12px;
+  }
+  .modalRight{
+    flex: 0 0 auto;
+    max-height:none;
+    overflow:visible;
+    border-left:none;
+    border-top:1px solid rgba(36,48,65,.75);
+    padding:10px 12px;
+  }
+  .modalRight .optGroup{ margin-bottom: 0; }
+  .modalRight .btn{ width:100%; }
+}
+
     
-  
-
-    /* =========================
-       MOBILE UX (<= 780px)
-       - categorias em "carrossel" no topo
-       - barra fixa do pedido
-       - modal com rodapé fixo (Adicionar)
-       ========================= */
-    .mobileCartBar{ display:none; }
-    @media (max-width: 780px){
-      /* Evita que a coluna de categorias empurre os produtos para "muito abaixo" */
-      .layout{ padding-bottom: 86px; }
-
-      /* Categorias: vira carrossel horizontal */
-      .left{
-        position: sticky;
-        top: 70px; /* abaixo da topbar */
-        z-index: 25;
-      }
-      .left .panelHeader{ gap:8px; }
-      .catList{
-        display:flex;
-        overflow-x:auto;
-        gap:10px;
-        padding:12px;
-        scroll-snap-type:x mandatory;
-        -webkit-overflow-scrolling: touch;
-      }
-      .cat{
-        flex: 0 0 auto;
-        min-width: 260px;
-        scroll-snap-align: start;
-      }
-      .cat .meta{ display:none; }
-      .cat .badge{ display:none; }
-      .cat .name{ font-size:14px; }
-
-      /* Barra fixa do pedido */
-      .mobileCartBar{
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:12px;
-        position:fixed;
-        left:10px; right:10px; bottom:10px;
-        z-index: 60;
-        padding:12px 14px;
-        border-radius: 16px;
-        border:1px solid var(--line);
-        background: var(--topbar-bg);
-        backdrop-filter: blur(10px);
-        box-shadow: var(--shadow);
-        cursor:pointer;
-        user-select:none;
-      }
-      .mcLeft{ min-width:0; }
-      .mcTitle{ font-weight:800; letter-spacing:.2px; }
-      .mcMeta{ color:var(--muted); font-size:12px; margin-top:2px; }
-      .mcCta{
-        background: rgba(var(--accent-rgb), .18);
-        border:1px solid rgba(var(--accent-rgb), .45);
-        color: var(--text);
-        padding:10px 12px;
-        border-radius: 12px;
-        font-weight:800;
-      }
-
-      /* Direita (pedido): dá um respiro */
-      .right{ scroll-margin-top: 84px; }
-      #middlePanel{ scroll-margin-top: 84px; }
-    }
-
-    @media (max-width: 600px){
-      /* Modal vira full screen + rodapé fixo para não precisar "rolar até o fim" */
-      .modalOverlay{ padding:0; }
-      .modal{
-        width: 100vw;
-        max-height: 100vh;
-        height: 100vh;
-        border-radius: 0;
-        display:flex;
-        flex-direction: column;
-      }
-      .modalLeft{
-        flex: 1 1 auto;
-        max-height: none;
-        overflow: auto;
-        padding: 12px;
-      }
-      .modalRight{
-        flex: 0 0 auto;
-        border-left: 0;
-        border-top: 1px solid var(--line);
-        padding: 12px;
-        background: var(--topbar-bg);
-        backdrop-filter: blur(10px);
-      }
-      .modalRight .optGroup{ margin-bottom:10px; }
-      #m_add, #m_add_fast{
-        height: 46px;
-        font-weight: 900;
-      }
-      /* Deixa o resumo compacto no mobile */
-      .modalRight .row{ font-size: 12px; }
-      .qtyRow{ justify-content: space-between; }
-      .qtyBtn{ width:44px; height:44px; }
-      .qty{ min-width: 72px; }
-    }
-</style>
+  </style>
 </head>
 
 <body>
@@ -846,6 +826,7 @@
     </div>
 
     <div class="controls">
+      <button class="btn" id="btnCats" title="Abrir categorias" aria-haspopup="dialog">☰ Categorias</button>
       <div class="pill" title="Ambiente de demonstração">
         <span class="dot"></span>
         <span>Demo • Categorias • Subgrupos • Itens • Complementos</span>
@@ -859,6 +840,7 @@
       <button class="btn" id="themeToggle" title="Alternar tema" aria-pressed="false">☀️ Claro</button>
     </div>
   </header>
+  <div class="scrim" id="scrim" aria-hidden="true"></div>
 
   <main class="layout">
     <!-- LEFT -->
@@ -868,7 +850,10 @@
           <div class="title">Categorias (Grupos)</div>
           <div class="hint">Organizam os itens para o cliente encontrar rápido</div>
         </div>
-        <div class="badge" id="catCount">0</div>
+        <div class="leftHeaderActions">
+          <div class="badge" id="catCount">0</div>
+          <button class="iconBtn" id="btnCatsClose" aria-label="Fechar categorias">✕</button>
+        </div>
       </div>
       <div class="catList" id="catList"></div>
     </section>
@@ -891,7 +876,7 @@
     </section>
 
     <!-- RIGHT -->
-    <section class="panel right" id="rightPanel" aria-label="Pedido / Checkout / KDS / Impressão">
+    <section class="panel right" aria-label="Pedido / Checkout / KDS / Impressão">
       <div class="panelHeader">
         <div>
           <div class="title">Pedido (simulador)</div>
@@ -971,16 +956,6 @@
   </main>
 
   <!-- MODAL -->
-  
-  <!-- Mobile: barra fixa do pedido -->
-  <div class="mobileCartBar" id="mobileCartBar" role="button" tabindex="0" aria-label="Ver pedido">
-    <div class="mcLeft">
-      <div class="mcTitle">Pedido</div>
-      <div class="mcMeta"><span id="mcCount">0</span> itens • <span id="mcTotal">R$ 0,00</span></div>
-    </div>
-    <div class="mcCta">Ver</div>
-  </div>
-
   <div class="modalOverlay" id="overlay" role="dialog" aria-modal="true" aria-label="Configurar item">
     <div class="modal">
       <div class="modalLeft">
@@ -2012,10 +1987,6 @@
     const elMidBody = document.getElementById("midBody");
     const elItemCount = document.getElementById("itemCount");
 
-    const elMobileCartBar = document.getElementById("mobileCartBar");
-    const elMcCount = document.getElementById("mcCount");
-    const elMcTotal = document.getElementById("mcTotal");
-
     function renderCategories(){
       elCatCount.textContent = catalog.categories.length + " cat";
       elCatList.innerHTML = "";
@@ -2023,15 +1994,10 @@
         const totalItems = c.subgroups.reduce((sum, sg) => sum + sg.items.length, 0);
         const div = document.createElement("div");
         div.className = "cat" + (state.activeCatId === c.id ? " active" : "");
-        div.onclick = () => { 
-          state.activeCatId = c.id; 
-          render(); 
-          if(window.innerWidth <= 780){
-            // No mobile, leva o usuário direto para a lista de itens
-            requestAnimationFrame(() => {
-              const mid = document.getElementById("middlePanel");
-              if(mid) mid.scrollIntoView({behavior:"smooth", block:"start"});
-            });
+        div.onclick = () => { state.activeCatId = c.id; render();
+          if(isMobile()){
+            closeCats();
+            setTimeout(()=>{ document.getElementById("middlePanel")?.scrollIntoView({behavior:"smooth", block:"start"}); }, 30);
           }
         };
         div.innerHTML = `
@@ -2195,20 +2161,7 @@
 
     function renderCart(){
       elCartList.innerHTML = "";
-      const count = state.cart.reduce((n, l) => n + l.qty, 0);
-      elCartBadge.textContent = count;
-
-      // Mobile: barra fixa do pedido (para não precisar rolar até o final)
-      const totalsNow = cartTotals();
-      if(elMcCount) elMcCount.textContent = count;
-      if(elMcTotal) elMcTotal.textContent = BRL(totalsNow.total);
-      if(elMobileCartBar){
-        if(window.innerWidth <= 780){
-          elMobileCartBar.style.display = count > 0 ? "flex" : "none";
-        }else{
-          elMobileCartBar.style.display = "none";
-        }
-      }
+      elCartBadge.textContent = state.cart.reduce((n, l) => n + l.qty, 0);
 
       for(const line of state.cart){
         const found = findItemById(line.itemId);
@@ -2284,19 +2237,6 @@
     document.getElementById("btnKDS").onclick = () => setTab("kds");
     document.getElementById("btnBackCart1").onclick = () => setTab("cart");
     document.getElementById("btnBackCart2").onclick = () => setTab("cart");
-
-    // Mobile: "Ver pedido" (barra fixa)
-    if(elMobileCartBar){
-      const goCart = () => {
-        const right = document.getElementById("rightPanel");
-        if(right) right.scrollIntoView({behavior:"smooth", block:"start"});
-      };
-      elMobileCartBar.addEventListener("click", goCart);
-      elMobileCartBar.addEventListener("keydown", (e) => {
-        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); goCart(); }
-      });
-    }
-
 // KDS por estação (2 tablets + 1 TV)
 const kdsTabBtns = Array.from(document.querySelectorAll(".kdsTabBtn"));
 const kdsViewB = document.getElementById("kds_view_b");
@@ -2321,7 +2261,24 @@ const btnResetKDS = document.getElementById("btnResetKDS");
 if(btnResetKDS) btnResetKDS.onclick = () => resetKDS();
 
     const overlay = document.getElementById("overlay");
-    const mTitle = document.getElementById("m_title");
+    
+
+// Mobile drawer: categorias
+const btnCats = document.getElementById("btnCats");
+const btnCatsClose = document.getElementById("btnCatsClose");
+const scrim = document.getElementById("scrim");
+function isMobile(){ return window.matchMedia("(max-width: 780px)").matches; }
+function openCats(){ document.body.classList.add("catsOpen"); }
+function closeCats(){ document.body.classList.remove("catsOpen"); }
+
+btnCats?.addEventListener("click", ()=>{
+  document.body.classList.contains("catsOpen") ? closeCats() : openCats();
+});
+btnCatsClose?.addEventListener("click", closeCats);
+scrim?.addEventListener("click", closeCats);
+window.addEventListener("keydown", (e)=>{ if(e.key === "Escape") closeCats(); });
+window.matchMedia("(min-width: 781px)").addEventListener("change", ()=> closeCats());
+const mTitle = document.getElementById("m_title");
     const mDesc = document.getElementById("m_desc");
     const mGroups = document.getElementById("m_groups");
     const mClose = document.getElementById("m_close");
